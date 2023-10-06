@@ -1,17 +1,21 @@
 <idea-plugin>
-    <id>intellij-stimulus</id>
-    <name>Stimulus</name>
-    <vendor>anstarovoyt</vendor>
+    <id>intellij-stimulus-symfony</id>
+    <name>Stimulus Symfony</name>
+    <vendor>anstarovoyt + Growiel</vendor>
     <depends>com.intellij.modules.platform</depends>
     <depends>JavaScript</depends>
+    <depends>com.jetbrains.twig</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <psi.referenceContributor language="HTML"
+                                  implementation="stimulus.lang.StimulusReferenceContributor"/>
+        <psi.referenceContributor language="Twig"
                                   implementation="stimulus.lang.StimulusReferenceContributor"/>
         <psi.referenceContributor language="JavaScript"
                                   implementation="stimulus.lang.js.StimulusJSReferenceContributor"/>
         <xml.attributeDescriptorsProvider order="first" implementation="stimulus.lang.StimulusAttributeDescriptorsProvider"/>
         <implicitUsageProvider implementation="stimulus.lang.js.StimulusImplicitUsagesProvider" />
         <completion.contributor order="last" language="JavaScript" implementationClass="stimulus.lang.js.StimulusCompletionContributor" />
+        <completion.contributor order="last" language="Twig" implementationClass="stimulus.lang.twig.StimulusTwigTemplateCompletionContributor"/>
     </extensions>
 </idea-plugin>

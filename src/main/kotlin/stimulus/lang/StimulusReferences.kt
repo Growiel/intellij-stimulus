@@ -52,14 +52,16 @@ fun toControllerName(file: PsiFile): String {
         }
     }
 
-    return name
+    return name.replaceFirstChar { it.lowercase() }
 }
 
 private fun trimControllerPostfix(file: PsiFile): String {
     val name = FileUtil.getNameWithoutExtension(file.name)
-    val trimmedSlash = StringUtil.trimEnd(name, "_controller")
-    if (name != trimmedSlash) return trimmedSlash
-    return StringUtil.trimEnd(name, "-controller")
+    val trimmedUnderscore = StringUtil.trimEnd(name, "_controller")
+    if (name != trimmedUnderscore) return trimmedUnderscore
+    val trimmedDash = StringUtil.trimEnd(name, "-controller")
+    if (name != trimmedDash) return trimmedDash
+    return StringUtil.trimEnd(name, "Controller")
 }
 
 
@@ -83,7 +85,7 @@ private fun findControllersByName(
     extension: String
 ): List<JSFile> {
     val filesWithUnderscore = FilenameIndex.getVirtualFilesByName(
-        "${trimPrefix(name)}_controller.".replace('-', '_') + extension,
+        "${trimPrefix(name)}_controller." + extension,
         GlobalSearchScope.projectScope(context.project)
     )
 
@@ -92,8 +94,13 @@ private fun findControllersByName(
         GlobalSearchScope.projectScope(context.project)
     )
 
+    val camelCaseFiles = FilenameIndex.getVirtualFilesByName(
+        "${trimPrefix(name)}Controller." + extension,
+        GlobalSearchScope.projectScope(context.project)
+    )
+
     val manager = context.manager
-    val files = filesWithUnderscore + filesWithDash
+    val files = filesWithUnderscore + filesWithDash + camelCaseFiles
     val mappedFiles = files.mapNotNull { manager.findFile(it) as? JSFile }
     return mappedFiles.filter { toControllerName(it) == name }.ifEmpty { mappedFiles }
 }
@@ -105,12 +112,12 @@ private fun trimPrefix(name: String): String {
     return name.substring(lastIndex + 2)
 }
 
-private fun getAllControllers(context: PsiElement): List<JSFile> {
+fun getAllControllers(context: PsiElement): List<JSFile> {
     val scope = object : DelegatingGlobalSearchScope(GlobalSearchScope.projectScope(context.project)) {
         override fun contains(file: VirtualFile): Boolean {
             val nameSequence = file.nameSequence
             return super.contains(file) &&
-                    (nameSequence.endsWith("_controller.js") || nameSequence.endsWith("-controller.js"))
+                    (nameSequence.endsWith("_controller.js") || nameSequence.endsWith("-controller.js") || nameSequence.endsWith("Controller.js"))
         }
     }
     return getAllControllers(JavaScriptFileType.INSTANCE, context.manager, scope) +
