@@ -17,5 +17,6 @@
         <implicitUsageProvider implementation="stimulus.lang.js.StimulusImplicitUsagesProvider" />
         <completion.contributor order="last" language="JavaScript" implementationClass="stimulus.lang.js.StimulusCompletionContributor" />
         <completion.contributor order="last" language="Twig" implementationClass="stimulus.lang.twig.StimulusTwigTemplateCompletionContributor"/>
+        <gotoDeclarationHandler implementation="stimulus.lang.StimulusGoToDeclarationHandler"/>
     </extensions>
 </idea-plugin>

@@ -24,155 +24,16 @@ import stimulus.lang.resolveController
 import stimulus.lang.toControllerName
 
 class StimulusTwigTemplateCompletionContributor : CompletionContributor() {
-    private val PARAMETER_WHITE_LIST = arrayOf<ElementPattern<PsiElement>>(
-        PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-        PlatformPatterns.psiElement(TwigTokenTypes.NUMBER),
-        PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-        PlatformPatterns.psiElement(TwigTokenTypes.SINGLE_QUOTE),
-        PlatformPatterns.psiElement(TwigTokenTypes.DOUBLE_QUOTE),
-        PlatformPatterns.psiElement(TwigTokenTypes.CONCAT),
-        PlatformPatterns.psiElement(TwigTokenTypes.IDENTIFIER),
-        PlatformPatterns.psiElement(TwigTokenTypes.STRING_TEXT),
-        PlatformPatterns.psiElement(TwigTokenTypes.DOT)
-    )
-
     init {
-        extend(CompletionType.BASIC, getPrintBlockOrTagFunctionPattern("stimulus_controller"), ControllerNameProvider())
-        extend(CompletionType.BASIC, getFunctionWithSecondParameterAsKeyLiteralPattern("stimulus_controller"), ControllerValuesProvider())
+        extend(CompletionType.BASIC, StimulusTwigPatterns.getPrintBlockOrTagFunctionPattern("stimulus_controller"), ControllerNameProvider())
+        extend(CompletionType.BASIC, StimulusTwigPatterns.getFunctionWithSecondParameterAsKeyLiteralPattern("stimulus_controller"), ControllerValuesProvider())
 
-        extend(CompletionType.BASIC, getPrintBlockOrTagFunctionPattern("stimulus_target"), ControllerNameProvider())
-        extend(CompletionType.BASIC, getFunctionSecondParameter("stimulus_target"), ControllerTargetsProvider())
+        extend(CompletionType.BASIC, StimulusTwigPatterns.getPrintBlockOrTagFunctionPattern("stimulus_target"), ControllerNameProvider())
+        extend(CompletionType.BASIC, StimulusTwigPatterns.getFunctionSecondParameter("stimulus_target"), ControllerTargetsProvider())
 
-        extend(CompletionType.BASIC, getPrintBlockOrTagFunctionPattern("stimulus_action"), ControllerNameProvider())
-        extend(CompletionType.BASIC, getFunctionSecondParameter("stimulus_action"), ControllerActionsProvider())
+        extend(CompletionType.BASIC, StimulusTwigPatterns.getPrintBlockOrTagFunctionPattern("stimulus_action"), ControllerNameProvider())
+        extend(CompletionType.BASIC, StimulusTwigPatterns.getFunctionSecondParameter("stimulus_action"), ControllerActionsProvider())
 //        extend(CompletionType.BASIC, getFunctionThirdParameter("stimulus_action"), ControllerEventsProvider())
-    }
-
-    // Copied from https://github.com/Haehnchen/idea-php-symfony2-plugin/blob/ff5c0c88dd4310fc1da514eae67427e4f77d0bed/src/main/java/fr/adrienbrault/idea/symfony2plugin/templating/TwigPattern.java
-    private fun getPrintBlockOrTagFunctionPattern(vararg functionName: String?): PsiElementPattern.Capture<out PsiElement> {
-        return (
-            (
-                PlatformPatterns.psiElement(TwigTokenTypes.STRING_TEXT)
-                    .withParent(getFunctionCallScopePattern()) as PsiElementPattern.Capture<*>
-            ).afterLeafSkipping(
-                PlatformPatterns.or(
-                    *arrayOf<ElementPattern<*>>(
-                        PlatformPatterns.psiElement(TwigTokenTypes.LBRACE),
-                        PlatformPatterns.psiElement(PsiWhiteSpace::class.java),
-                        PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                        PlatformPatterns.psiElement(TwigTokenTypes.SINGLE_QUOTE),
-                        PlatformPatterns.psiElement(TwigTokenTypes.DOUBLE_QUOTE)
-                    )
-                ),
-                PlatformPatterns.psiElement(TwigTokenTypes.IDENTIFIER).withText(
-                    PlatformPatterns.string().oneOf(*functionName)
-                )
-            ) as PsiElementPattern.Capture<*>
-        ).withLanguage(TwigLanguage.INSTANCE)
-    }
-
-    // Copied from https://github.com/Haehnchen/idea-php-symfony2-plugin/blob/ff5c0c88dd4310fc1da514eae67427e4f77d0bed/src/main/java/fr/adrienbrault/idea/symfony2plugin/templating/TwigPattern.java
-    private fun getFunctionCallScopePattern(): ElementPattern<PsiElement> {
-        val var10000: ElementPattern<PsiElement> = PlatformPatterns.or(*arrayOf<ElementPattern<PsiElement>>(PlatformPatterns.psiElement(TwigElementTypes.PRINT_BLOCK), PlatformPatterns.psiElement(TwigElementTypes.TAG), PlatformPatterns.psiElement(TwigElementTypes.IF_TAG), PlatformPatterns.psiElement(TwigElementTypes.SET_TAG), PlatformPatterns.psiElement(TwigElementTypes.ELSE_TAG), PlatformPatterns.psiElement(TwigElementTypes.ELSEIF_TAG), PlatformPatterns.psiElement(TwigElementTypes.FOR_TAG), PlatformPatterns.psiElement(TwigElementTypes.FUNCTION_CALL)))
-        return var10000
-    }
-
-    fun getFunctionSecondParameter(vararg functionName: String?): ElementPattern<PsiElement> {
-        return PlatformPatterns.psiElement(TwigTokenTypes.STRING_TEXT).afterLeafSkipping(
-                PlatformPatterns.or(
-                    PlatformPatterns.psiElement(PsiWhiteSpace::class.java),
-                    PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                    PlatformPatterns.psiElement(TwigTokenTypes.SINGLE_QUOTE),
-                    PlatformPatterns.psiElement(TwigTokenTypes.DOUBLE_QUOTE)
-                ),
-                PlatformPatterns.psiElement(TwigTokenTypes.COMMA).afterLeafSkipping(
-                    PlatformPatterns.or<Any>(*PARAMETER_WHITE_LIST),
-                    PlatformPatterns.psiElement(TwigTokenTypes.LBRACE).afterLeafSkipping(
-                        PlatformPatterns.or<PsiElement>(
-                            PlatformPatterns.psiElement<PsiWhiteSpace>(PsiWhiteSpace::class.java),
-                            PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                            PlatformPatterns.psiElement(TwigTokenTypes.NUMBER)
-                        ),
-                        PlatformPatterns.psiElement(TwigTokenTypes.IDENTIFIER).withText(PlatformPatterns.string().oneOf(*functionName))
-                    )
-                )
-            ).withLanguage(TwigLanguage.INSTANCE)
-    }
-
-    fun getFunctionThirdParameter(vararg functionName: String?): ElementPattern<PsiElement> {
-        return PlatformPatterns.psiElement(TwigTokenTypes.STRING_TEXT).afterLeafSkipping(
-            PlatformPatterns.or(
-                PlatformPatterns.psiElement(PsiWhiteSpace::class.java),
-                PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                PlatformPatterns.psiElement(TwigTokenTypes.SINGLE_QUOTE),
-                PlatformPatterns.psiElement(TwigTokenTypes.DOUBLE_QUOTE)
-            ),
-            PlatformPatterns.psiElement(TwigTokenTypes.COMMA).afterLeafSkipping(
-                PlatformPatterns.or<Any>(
-                    *PARAMETER_WHITE_LIST,
-                    PlatformPatterns.psiElement(PsiWhiteSpace::class.java)
-                ),
-                PlatformPatterns.psiElement(TwigTokenTypes.COMMA).afterLeafSkipping(
-                    PlatformPatterns.or<Any>(
-                        *PARAMETER_WHITE_LIST,
-                        PlatformPatterns.psiElement(PsiWhiteSpace::class.java)
-                    ),
-                    PlatformPatterns.psiElement(TwigTokenTypes.LBRACE).afterLeafSkipping(
-                        PlatformPatterns.or<PsiElement>(
-                            PlatformPatterns.psiElement<PsiWhiteSpace>(PsiWhiteSpace::class.java),
-                            PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                            PlatformPatterns.psiElement(TwigTokenTypes.NUMBER)
-                        ),
-                        PlatformPatterns.psiElement(TwigTokenTypes.IDENTIFIER).withText(PlatformPatterns.string().oneOf(*functionName))
-                    )
-                )
-            ),
-        ).withLanguage(TwigLanguage.INSTANCE)
-    }
-
-    // Copied from https://github.com/Haehnchen/idea-php-symfony2-plugin/blob/ff5c0c88dd4310fc1da514eae67427e4f77d0bed/src/main/java/fr/adrienbrault/idea/symfony2plugin/templating/TwigPattern.java
-    fun getFunctionWithSecondParameterAsKeyLiteralPattern(vararg functionName: String?): ElementPattern<PsiElement> {
-        val parameterPattern = PlatformPatterns.psiElement(TwigElementTypes.LITERAL).afterLeafSkipping(
-            PlatformPatterns.or<PsiElement>(
-                PlatformPatterns.psiElement<PsiWhiteSpace>(PsiWhiteSpace::class.java),
-                PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE)
-            ),
-            PlatformPatterns.psiElement(TwigTokenTypes.COMMA).afterLeafSkipping(
-                PlatformPatterns.or<Any>(*PARAMETER_WHITE_LIST),
-                PlatformPatterns.psiElement(TwigTokenTypes.LBRACE).afterLeafSkipping(
-                    PlatformPatterns.or<PsiElement>(
-                        PlatformPatterns.psiElement<PsiWhiteSpace>(PsiWhiteSpace::class.java),
-                        PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                        PlatformPatterns.psiElement(TwigTokenTypes.NUMBER)
-                    ),
-                    PlatformPatterns.psiElement(TwigTokenTypes.IDENTIFIER).withText(PlatformPatterns.string().oneOf(*functionName))
-                )
-            )
-        )
-
-        return PlatformPatterns.or( // {{ foo({'foobar': 'foo', 'foo<caret>bar': 'foo'}}) }}
-            PlatformPatterns
-                .psiElement(TwigTokenTypes.STRING_TEXT).afterLeafSkipping(
-                    PlatformPatterns.or(
-                        PlatformPatterns.psiElement(PsiWhiteSpace::class.java),
-                        PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                        PlatformPatterns.psiElement(TwigTokenTypes.SINGLE_QUOTE),
-                        PlatformPatterns.psiElement(TwigTokenTypes.DOUBLE_QUOTE)
-                    ),
-                    PlatformPatterns.psiElement(TwigTokenTypes.COMMA).withParent(parameterPattern)
-                ).withLanguage(TwigLanguage.INSTANCE),  // {{ foo(12, {'foo<caret>bar': 'foo'}}) }}
-            PlatformPatterns
-                .psiElement(TwigTokenTypes.STRING_TEXT).afterLeafSkipping(
-                    PlatformPatterns.or(
-                        PlatformPatterns.psiElement(PsiWhiteSpace::class.java),
-                        PlatformPatterns.psiElement(TwigTokenTypes.WHITE_SPACE),
-                        PlatformPatterns.psiElement(TwigTokenTypes.SINGLE_QUOTE),
-                        PlatformPatterns.psiElement(TwigTokenTypes.DOUBLE_QUOTE)
-                    ),
-                    PlatformPatterns.psiElement(TwigTokenTypes.LBRACE_CURL).withParent(parameterPattern)
-                )
-                .withLanguage(TwigLanguage.INSTANCE)
-        )
     }
 }
 
@@ -181,12 +42,12 @@ abstract class StimulusCompletionProvider : CompletionProvider<CompletionParamet
         val matchControllerName = regex.find(functionCallElement.text)!!
         val controllerName = matchControllerName.groups[1]?.value ?: return null
 
-        // Try the lower case and upper case version of the file.
         var controllerFile = (resolveController(controllerName, element) as? ES6ExportDefaultAssignment)
-        if (controllerFile == null) {
-            controllerFile = (resolveController(controllerName.replaceFirstChar { it.uppercase() }, element) as? ES6ExportDefaultAssignment) ?: return null
+        if (controllerFile != null) {
+            return controllerFile.namedElement as? JSClass
         }
-        return controllerFile.namedElement as? JSClass
+
+        return null;
     }
 }
 

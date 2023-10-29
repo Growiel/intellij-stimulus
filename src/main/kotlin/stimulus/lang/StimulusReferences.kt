@@ -26,7 +26,11 @@ const val dataActionName = "data-action"
 private const val CONTROLLERS = "controllers"
 
 fun resolveController(name: String, context: PsiElement): PsiElement? {
-    val filesByNames = findControllersByName(context, name, "js") + findControllersByName(context, name, "ts")
+    val filesByNames =
+        findControllersByName(context, name, "js") +
+        findControllersByName(context, name, "ts") +
+        findControllersByName(context, name.replaceFirstChar { it.uppercase() }, "js") +
+        findControllersByName(context, name.replaceFirstChar { it.uppercase() }, "ts")
     if (filesByNames.isEmpty()) return null
     return filesByNames.firstNotNullOfOrNull(ES6PsiUtil::findDefaultExport)
 }
