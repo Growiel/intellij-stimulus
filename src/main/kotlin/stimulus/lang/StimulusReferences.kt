@@ -121,7 +121,14 @@ fun getAllControllers(context: PsiElement): List<JSFile> {
         override fun contains(file: VirtualFile): Boolean {
             val nameSequence = file.nameSequence
             return super.contains(file) &&
-                    (nameSequence.endsWith("_controller.js") || nameSequence.endsWith("-controller.js") || nameSequence.endsWith("Controller.js"))
+                    (
+                        nameSequence.endsWith("_controller.js")
+                        || nameSequence.endsWith("-controller.js")
+                        || nameSequence.endsWith("Controller.js")
+                        || nameSequence.endsWith("_controller.ts")
+                        || nameSequence.endsWith("-controller.ts")
+                        || nameSequence.endsWith("Controller.ts")
+                    )
         }
     }
     return getAllControllers(JavaScriptFileType.INSTANCE, context.manager, scope) +

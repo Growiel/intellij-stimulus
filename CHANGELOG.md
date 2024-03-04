@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### v0.6.1
+
+- Fix: show TypeScript controller in all `stimulus_*` calls.
+
 ### v0.6
 
 - Added Twig support
